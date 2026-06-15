@@ -1,4 +1,4 @@
-package com.iswarya.gold_organizer;
+package com.iswarya.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

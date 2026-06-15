@@ -5,7 +5,14 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import lombok.*;
 
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "loans")
 public class Loan {
@@ -14,16 +21,21 @@ public class Loan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String bankName;
 
     private String branchName;
 
+    @Column(nullable = false)
     private BigDecimal loanAmount;
 
+    @Column(nullable = false)
     private BigDecimal interestRate;
 
+    @Column(nullable = false)
     private LocalDate pledgeDate;
 
+    @Column(nullable = false)
     private LocalDate dueDate;
 
     private LocalDate renewalDate;
@@ -33,7 +45,7 @@ public class Loan {
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 }
