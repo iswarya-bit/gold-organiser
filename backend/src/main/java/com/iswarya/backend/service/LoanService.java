@@ -2,6 +2,7 @@ package com.iswarya.backend.service;
 
 import com.iswarya.backend.dto.LoanRequest;
 import com.iswarya.backend.dto.LoanResponse;
+import com.iswarya.backend.dto.RenewLoanRequest;
 import com.iswarya.backend.dto.UpdateLoanRequest;
 import com.iswarya.backend.entity.enums.LoanStatus;
 
@@ -24,4 +25,8 @@ public interface LoanService {
 
     List<LoanResponse> getLoansByStatus(
         LoanStatus status);
+
+    LoanResponse renewLoan(
+        Long id,
+        RenewLoanRequest request);
 }

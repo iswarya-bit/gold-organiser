@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import com.iswarya.backend.dto.LoanRequest;
 import com.iswarya.backend.dto.LoanResponse;
+import com.iswarya.backend.dto.RenewLoanRequest;
 import com.iswarya.backend.dto.UpdateLoanRequest;
 import com.iswarya.backend.entity.Loan;
 import com.iswarya.backend.entity.User;
 import com.iswarya.backend.entity.enums.LoanStatus;
+import com.iswarya.backend.exception.InvalidRenewalException;
+import com.iswarya.backend.exception.LoanAlreadyClosedException;
 import com.iswarya.backend.exception.LoanNotFoundException;
 import com.iswarya.backend.exception.UserNotFoundException;
 import com.iswarya.backend.repository.LoanRepository;
@@ -204,8 +207,57 @@ public class LoanServiceImpl implements LoanService {
                                 .loanAmount(loan.getLoanAmount())
                                 .interestRate(loan.getInterestRate())
                                 .pledgeDate(loan.getPledgeDate())
+                                .renewalDate(loan.getRenewalDate())
+                                .closedDate(loan.getClosedDate())
                                 .dueDate(loan.getDueDate())
                                 .status(loan.getStatus())
                                 .build();
+        }
+
+        @Override
+        public LoanResponse renewLoan(
+                        Long id,
+                        RenewLoanRequest request) {
+
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
+
+                String email = authentication.getName();
+
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new UserNotFoundException(
+                                                "User not found"));
+
+                Loan loan = loanRepository
+                                .findByIdAndUser(id, user)
+                                .orElseThrow(() -> new LoanNotFoundException(
+                                                "Loan not found"));
+
+                if (loan.getStatus() == LoanStatus.CLOSED) {
+                        throw new LoanAlreadyClosedException(
+                                        "Closed loans cannot be renewed");
+                }
+
+                if (request.getNewDueDate() == null) {
+                        throw new InvalidRenewalException(
+                                        "New due date is required");
+                }
+
+                if (!request.getNewDueDate()
+                                .isAfter(loan.getDueDate())) {
+
+                        throw new InvalidRenewalException(
+                                        "New due date must be after the current due date");
+                }
+
+                loan.setRenewalDate(LocalDate.now());
+
+                loan.setDueDate(request.getNewDueDate());
+
+                Loan updatedLoan = loanRepository.save(loan);
+
+                return mapToResponse(updatedLoan);
         }
 }

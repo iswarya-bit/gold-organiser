@@ -28,5 +28,9 @@ public class LoanResponse {
 
     private LocalDate dueDate;
 
+    private LocalDate renewalDate;   
+
+    private LocalDate closedDate;    
+    
     private LoanStatus status;
 }
