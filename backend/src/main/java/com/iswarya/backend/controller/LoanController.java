@@ -7,6 +7,10 @@ import com.iswarya.backend.dto.UpdateLoanRequest;
 import com.iswarya.backend.entity.enums.LoanStatus;
 import com.iswarya.backend.service.LoanService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
@@ -17,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/loans")
+@SecurityRequirement(name = "Bearer Authentication")
 public class LoanController {
 
         private final LoanService loanService;
@@ -27,6 +32,15 @@ public class LoanController {
                 this.loanService = loanService;
         }
 
+
+        
+        @Operation(summary = "Create a new loan", description = "Creates a new gold loan for the authenticated user.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "201", description = "Loan created successfully"),
+                        @ApiResponse(responseCode = "400", description = "Validation failed"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "User not found")
+        })
         @PostMapping
         public ResponseEntity<LoanResponse> createLoan(
                         @Valid @RequestBody LoanRequest request) {
@@ -38,6 +52,14 @@ public class LoanController {
                                 .body(response);
         }
 
+
+
+        @Operation(summary = "Get loan by ID", description = "Returns a specific loan of the authenticated user.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loan retrieved successfully"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "Loan not found")
+        })
         @GetMapping("/{id}")
         public ResponseEntity<LoanResponse> getLoanById(@Valid @PathVariable Long id) {
 
@@ -45,6 +67,15 @@ public class LoanController {
                                 loanService.getLoanById(id));
         }
 
+
+
+        @Operation(summary = "Update loan", description = "Updates loan details.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loan updated successfully"),
+                        @ApiResponse(responseCode = "400", description = "Validation failed"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "Loan not found")
+        })
         @PutMapping("/{id}")
         public ResponseEntity<LoanResponse> updateLoan(
                         @PathVariable Long id,
@@ -56,6 +87,14 @@ public class LoanController {
                                                 request));
         }
 
+
+
+        @Operation(summary = "Close loan", description = "Marks a loan as closed.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loan closed successfully"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "Loan not found")
+        })
         @PatchMapping("/{id}/close")
         public ResponseEntity<LoanResponse> closeLoan(@Valid @PathVariable Long id) {
 
@@ -63,6 +102,13 @@ public class LoanController {
                                 loanService.closeLoan(id));
         }
 
+
+
+        @Operation(summary = "Get all loans", description = "Returns all loans belonging to the authenticated user.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loans retrieved successfully"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized")
+        })
         @GetMapping
         public ResponseEntity<List<LoanResponse>> getLoans(
                         @Valid @RequestParam(required = false) LoanStatus status) {
@@ -77,6 +123,15 @@ public class LoanController {
                                 loanService.getMyLoans());
         }
 
+
+
+        @Operation(summary = "Renew loan", description = "Extends the due date of an active loan.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loan renewed successfully"),
+                        @ApiResponse(responseCode = "400", description = "Invalid renewal request"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "Loan not found")
+        })
         @PatchMapping("/{id}/renew")
         public ResponseEntity<LoanResponse> renewLoan(
                         @PathVariable Long id,
@@ -88,9 +143,16 @@ public class LoanController {
                                                 request));
         }
 
+
+
+        @Operation(summary = "Filter loans by status", description = "Returns loans filtered by their status.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Loans retrieved successfully"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized")
+        })
         @GetMapping("/status/{status}")
         public ResponseEntity<List<LoanResponse>> getLoansByStatus(
-                       @Valid @PathVariable LoanStatus status) {
+                        @Valid @PathVariable LoanStatus status) {
 
                 return ResponseEntity.ok(
                                 loanService.getLoansByStatus(status));
