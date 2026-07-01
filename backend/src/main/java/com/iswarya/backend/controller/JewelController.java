@@ -11,8 +11,14 @@ import org.springframework.web.bind.annotation.*;
 
 import com.iswarya.backend.service.JewelService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api/loans/{loanId}/jewels")
+@SecurityRequirement(name = "Bearer Authentication")
 public class JewelController {
 
     private final JewelService jewelService;
@@ -23,6 +29,13 @@ public class JewelController {
         this.jewelService = jewelService;
     }
 
+    @Operation(summary = "Create a new Jewel", description = "Creates a new jewel for the authenticated user.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "201", description = "Jewel created successfully"),
+                        @ApiResponse(responseCode = "400", description = "Validation failed"),
+                        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @ApiResponse(responseCode = "404", description = "Jewel not found")
+        })
     @PostMapping
     public ResponseEntity<JewelResponse> createJewel(
             @PathVariable Long loanId,
@@ -34,6 +47,13 @@ public class JewelController {
                         request));
     }
 
+
+    @Operation(summary = "Get Jewels by Loan ID", description = "Returns a list of jewels associated with a specific loan.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Jewels retrieved successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Loan not found")
+    })
     @GetMapping
     public ResponseEntity<List<JewelResponse>> getJewelsByLoan(
             @PathVariable Long loanId) {
@@ -43,6 +63,14 @@ public class JewelController {
                         loanId));
     }
 
+
+    @Operation(summary = "Update a Jewel", description = "Updates an existing jewel associated with a specific loan.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Jewel updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Validation failed"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Jewel not found")
+    })
     @PutMapping("/{jewelId}")
     public ResponseEntity<JewelResponse> updateJewel(
             @PathVariable Long loanId,
@@ -56,6 +84,12 @@ public class JewelController {
                         request));
     }
 
+    @Operation(summary = "Delete a Jewel", description = "Deletes an existing jewel associated with a specific loan.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Jewel deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "404", description = "Jewel not found")
+    })
     @DeleteMapping("/{jewelId}")
     public ResponseEntity<String> deleteJewel(
             @PathVariable Long loanId,
