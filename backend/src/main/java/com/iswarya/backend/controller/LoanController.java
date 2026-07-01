@@ -7,6 +7,8 @@ import com.iswarya.backend.dto.UpdateLoanRequest;
 import com.iswarya.backend.entity.enums.LoanStatus;
 import com.iswarya.backend.service.LoanService;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +29,7 @@ public class LoanController {
 
         @PostMapping
         public ResponseEntity<LoanResponse> createLoan(
-                        @RequestBody LoanRequest request) {
+                        @Valid @RequestBody LoanRequest request) {
 
                 LoanResponse response = loanService.createLoan(request);
 
@@ -37,7 +39,7 @@ public class LoanController {
         }
 
         @GetMapping("/{id}")
-        public ResponseEntity<LoanResponse> getLoanById(@PathVariable Long id) {
+        public ResponseEntity<LoanResponse> getLoanById(@Valid @PathVariable Long id) {
 
                 return ResponseEntity.ok(
                                 loanService.getLoanById(id));
@@ -46,7 +48,7 @@ public class LoanController {
         @PutMapping("/{id}")
         public ResponseEntity<LoanResponse> updateLoan(
                         @PathVariable Long id,
-                        @RequestBody UpdateLoanRequest request) {
+                        @Valid @RequestBody UpdateLoanRequest request) {
 
                 return ResponseEntity.ok(
                                 loanService.updateLoan(
@@ -55,7 +57,7 @@ public class LoanController {
         }
 
         @PatchMapping("/{id}/close")
-        public ResponseEntity<LoanResponse> closeLoan(@PathVariable Long id) {
+        public ResponseEntity<LoanResponse> closeLoan(@Valid @PathVariable Long id) {
 
                 return ResponseEntity.ok(
                                 loanService.closeLoan(id));
@@ -63,7 +65,7 @@ public class LoanController {
 
         @GetMapping
         public ResponseEntity<List<LoanResponse>> getLoans(
-                        @RequestParam(required = false) LoanStatus status) {
+                        @Valid @RequestParam(required = false) LoanStatus status) {
 
                 if (status != null) {
                         return ResponseEntity.ok(
@@ -78,7 +80,7 @@ public class LoanController {
         @PatchMapping("/{id}/renew")
         public ResponseEntity<LoanResponse> renewLoan(
                         @PathVariable Long id,
-                        @RequestBody RenewLoanRequest request) {
+                        @Valid @RequestBody RenewLoanRequest request) {
 
                 return ResponseEntity.ok(
                                 loanService.renewLoan(
@@ -88,7 +90,7 @@ public class LoanController {
 
         @GetMapping("/status/{status}")
         public ResponseEntity<List<LoanResponse>> getLoansByStatus(
-                        @PathVariable LoanStatus status) {
+                       @Valid @PathVariable LoanStatus status) {
 
                 return ResponseEntity.ok(
                                 loanService.getLoansByStatus(status));
