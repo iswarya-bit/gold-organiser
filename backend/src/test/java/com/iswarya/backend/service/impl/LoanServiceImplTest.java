@@ -13,7 +13,7 @@ import org.springframework.security.core.Authentication;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +44,7 @@ class LoanServiceImplTest {
         @InjectMocks
         private LoanServiceImpl loanService;
 
+        // MOCKING REPOSITORY TEST CASE
         @Test
         void shouldMockRepository() {
 
@@ -55,6 +56,7 @@ class LoanServiceImplTest {
                 assertEquals(5L, count);
         }
 
+        // GET LOANS BY STATUS TEST CASES
         @Test
         void getLoansByStatus_ShouldReturnLoans() {
 
@@ -135,8 +137,65 @@ class LoanServiceImplTest {
                                 () -> loanService.getLoansByStatus(LoanStatus.ACTIVE));
         }
 
+        // RENEW LOAN TEST CASES
         @Test
         void renewLoan_ShouldThrowLoanAlreadyClosedException() {
+
+                Authentication authentication = mock(Authentication.class);
+
+                when(authentication.getName())
+                                .thenReturn("iswarya@gmail.com");
+
+                SecurityContext context = new SecurityContextImpl();
+                context.setAuthentication(authentication);
+                SecurityContextHolder.setContext(context);
+
+                User user = User.builder()
+                                .id(1L)
+                                .name("Iswarya")
+                                .email("iswarya@gmail.com")
+                                .password("password")
+                                .phoneNumber("9876543210")
+                                .status(UserStatus.ACTIVE)
+                                .build();
+
+                when(userRepository.findByEmail("iswarya@gmail.com"))
+                                .thenReturn(Optional.of(user));
+
+                Loan loan = Loan.builder()
+                                .id(1L)
+                                .bankName("SBI")
+                                .branchName("Chennai")
+                                .loanAmount(new BigDecimal("500000"))
+                                .interestRate(new BigDecimal("8.5"))
+                                .pledgeDate(LocalDate.of(2026, 1, 1))
+                                .dueDate(LocalDate.of(2027, 1, 1))
+                                .status(LoanStatus.CLOSED)
+                                .user(user)
+                                .build();
+
+                when(loanRepository.findByIdAndUser(1L, user))
+                                .thenReturn(Optional.of(loan));
+
+                RenewLoanRequest request = new RenewLoanRequest();
+                request.setNewDueDate(LocalDate.of(2027, 6, 1));
+
+                assertThrows(
+                                LoanAlreadyClosedException.class,
+                                () -> loanService.renewLoan(1L, request));
+
+                verify(userRepository)
+                                .findByEmail("iswarya@gmail.com");
+
+                verify(loanRepository)
+                                .findByIdAndUser(1L, user);
+
+                verify(loanRepository, never())
+                                .save(any(Loan.class));
+        }
+
+        @Test
+        void renewLoan_ShouldRenewLoanSuccessfully() {
 
                 Authentication authentication = mock(Authentication.class);
 
@@ -177,17 +236,34 @@ class LoanServiceImplTest {
                 RenewLoanRequest request = new RenewLoanRequest();
                 request.setNewDueDate(LocalDate.of(2027, 6, 1));
 
-                assertThrows(
-                                LoanAlreadyClosedException.class,
-                                () -> loanService.renewLoan(1L, request));
+                when(loanRepository.save(any(Loan.class)))
+                                .thenReturn(loan);
+
+                LoanResponse response = loanService.renewLoan(1L, request);
+
+                assertNotNull(response);
+
+                assertEquals(
+                                LocalDate.of(2027, 6, 1),
+                                response.getDueDate());
+
+                assertEquals(
+                                LoanStatus.ACTIVE,
+                                response.getStatus());
 
                 verify(userRepository)
                                 .findByEmail("iswarya@gmail.com");
-
                 verify(loanRepository)
                                 .findByIdAndUser(1L, user);
 
-                verify(loanRepository, never())
-                                .save(any(Loan.class));
+                // ArgumentCaptor to capture the loan object passed to save method
+                ArgumentCaptor<Loan> loanCaptor = ArgumentCaptor.forClass(Loan.class);
+                verify(loanRepository, times(1))
+                                .save(loanCaptor.capture());
+                Loan savedLoan = loanCaptor.getValue();
+                assertEquals(LocalDate.of(2027, 6, 1), savedLoan.getDueDate());
+                assertEquals(LoanStatus.ACTIVE, savedLoan.getStatus());
+                assertEquals(user, savedLoan.getUser());
         }
+
 }
