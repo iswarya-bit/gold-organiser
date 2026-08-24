@@ -1,6 +1,7 @@
 package com.iswarya.backend.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.iswarya.backend.entity.enums.JewelType;
 
@@ -26,4 +27,6 @@ public class JewelResponse {
     private Integer quantity;
 
     private String description;
+
+    private List<String> imageUrls;
 }

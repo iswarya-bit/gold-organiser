@@ -19,99 +19,116 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(LoanNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleLoanNotFoundException(
-            LoanNotFoundException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(LoanNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleLoanNotFoundException(
+                        LoanNotFoundException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse error = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.NOT_FOUND.value())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(error);
-    }
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(error);
+        }
 
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFoundException(
-            UserNotFoundException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(UserNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleUserNotFoundException(
+                        UserNotFoundException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse error = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.NOT_FOUND.value())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(error);
-    }
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(error);
+        }
 
-    @ExceptionHandler(InvalidRenewalException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRenewalException(
-            InvalidRenewalException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(InvalidRenewalException.class)
+        public ResponseEntity<ErrorResponse> handleInvalidRenewalException(
+                        InvalidRenewalException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse error = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(error);
-    }
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(error);
+        }
 
-    @ExceptionHandler(LoanAlreadyClosedException.class)
-    public ResponseEntity<ErrorResponse> handleLoanAlreadyClosedException(
-            LoanAlreadyClosedException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(LoanAlreadyClosedException.class)
+        public ResponseEntity<ErrorResponse> handleLoanAlreadyClosedException(
+                        LoanAlreadyClosedException ex,
+                        HttpServletRequest request) {
 
-        ErrorResponse error = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
-                .path(request.getRequestURI())
-                .build();
+                ErrorResponse error = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
 
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(error);
-    }
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(error);
+        }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> handleValidationException(
+                        MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
 
-        Map<String, String> errors = new HashMap<>();
+                Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult()
-                .getFieldErrors()
-                .forEach(error ->
+                ex.getBindingResult()
+                                .getFieldErrors()
+                                .forEach(error ->
 
-                errors.put(
-                        error.getField(),
-                        error.getDefaultMessage()));
+                                errors.put(
+                                                error.getField(),
+                                                error.getDefaultMessage()));
 
-        ErrorResponse response = ErrorResponse.builder()
-                .timestamp(LocalDateTime.now())
-                .status(HttpStatus.BAD_REQUEST.value())
-                .message("Validation Failed")
-                .path(request.getRequestURI())
-                .errors(errors)
-                .build();
+                ErrorResponse response = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message("Validation Failed")
+                                .path(request.getRequestURI())
+                                .errors(errors)
+                                .build();
 
-        return ResponseEntity
-                .badRequest()
-                .body(response);
-    }
+                return ResponseEntity
+                                .badRequest()
+                                .body(response);
+        }
+
+        @ExceptionHandler(JewelNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleJewelNotFoundException(
+                        JewelNotFoundException ex,
+                        HttpServletRequest request) {
+
+                ErrorResponse error = ErrorResponse.builder()
+                                .timestamp(LocalDateTime.now())
+                                .status(HttpStatus.NOT_FOUND.value())
+                                .message(ex.getMessage())
+                                .path(request.getRequestURI())
+                                .build();
+
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(error);
+        }
 }

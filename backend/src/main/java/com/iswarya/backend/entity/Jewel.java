@@ -1,6 +1,8 @@
 package com.iswarya.backend.entity;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.iswarya.backend.entity.enums.JewelType;
 
@@ -32,4 +34,8 @@ public class Jewel {
     @ManyToOne
     @JoinColumn(name = "loan_id")
     private Loan loan;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "jewel", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<JewelImage> images = new ArrayList<>();
 }

@@ -6,15 +6,19 @@ import com.iswarya.backend.dto.JewelRequest;
 import com.iswarya.backend.dto.JewelResponse;
 import com.iswarya.backend.dto.UpdateJewelRequest;
 import com.iswarya.backend.entity.Jewel;
+import com.iswarya.backend.entity.JewelImage;
 import com.iswarya.backend.entity.Loan;
+import com.iswarya.backend.exception.JewelNotFoundException;
 import com.iswarya.backend.exception.LoanNotFoundException;
 import com.iswarya.backend.exception.UserNotFoundException;
 import com.iswarya.backend.repository.JewelRepository;
 import com.iswarya.backend.repository.LoanRepository;
 import com.iswarya.backend.repository.UserRepository;
+import com.iswarya.backend.service.CloudinaryService;
 import com.iswarya.backend.service.JewelService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -25,188 +29,230 @@ import com.iswarya.backend.entity.User;
 @Service
 public class JewelServiceImpl implements JewelService {
 
-    private final JewelRepository jewelRepository;
-    private final LoanRepository loanRepository;
-    private final UserRepository userRepository;
+        private final JewelRepository jewelRepository;
+        private final LoanRepository loanRepository;
+        private final UserRepository userRepository;
+        private final CloudinaryService cloudinaryService;
 
-    public JewelServiceImpl(
-            JewelRepository jewelRepository,
-            LoanRepository loanRepository,
-            UserRepository userRepository) {
+        public JewelServiceImpl(
+                        JewelRepository jewelRepository,
+                        LoanRepository loanRepository,
+                        UserRepository userRepository,
+                        CloudinaryService cloudinaryService) {
 
-        this.jewelRepository = jewelRepository;
-        this.loanRepository = loanRepository;
-        this.userRepository = userRepository;
-    }
-
-    private JewelResponse mapToResponse(
-            Jewel jewel) {
-
-        return JewelResponse.builder()
-                .id(jewel.getId())
-                .jewelType(jewel.getJewelType())
-                .weight(jewel.getWeight())
-                .quantity(jewel.getQuantity())
-                .description(jewel.getDescription())
-                .build();
-    }
-
-    @Override
-    public JewelResponse createJewel(
-            Long loanId,
-            JewelRequest request) {
-
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "User not found"));
-
-        Loan loan = loanRepository
-                .findByIdAndUser(
-                        loanId,
-                        user)
-                .orElseThrow(() -> new LoanNotFoundException(
-                        "Loan not found"));
-
-        Jewel jewel = Jewel.builder()
-                .jewelType(
-                        request.getJewelType())
-                .weight(
-                        request.getWeight())
-                .quantity(
-                        request.getQuantity())
-                .description(
-                        request.getDescription())
-                .loan(loan)
-                .build();
-
-        Jewel savedJewel = jewelRepository.save(jewel);
-
-        return mapToResponse(savedJewel);
-    }
-
-    @Override
-    public List<JewelResponse> getJewelsByLoan(
-            Long loanId) {
-
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "User not found"));
-
-        Loan loan = loanRepository
-                .findByIdAndUser(
-                        loanId,
-                        user)
-                .orElseThrow(() -> new LoanNotFoundException(
-                        "Loan not found"));
-
-        List<Jewel> jewels = jewelRepository.findByLoan(loan);
-
-        return jewels.stream()
-                .map(this::mapToResponse)
-                .toList();
-    }
-
-    @Override
-    public JewelResponse updateJewel(
-            Long loanId,
-            Long jewelId,
-            UpdateJewelRequest request) {
-
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
-
-        String email = authentication.getName();
-
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "User not found"));
-
-        Loan loan = loanRepository
-                .findByIdAndUser(
-                        loanId,
-                        user)
-                .orElseThrow(() -> new LoanNotFoundException(
-                        "Loan not found"));
-
-        Jewel jewel = jewelRepository
-                .findByIdAndLoan(
-                        jewelId,
-                        loan)
-                .orElseThrow(() -> new RuntimeException(
-                        "Jewel not found"));
-
-        if (request.getJewelType() != null) {
-            jewel.setJewelType(
-                    request.getJewelType());
+                this.jewelRepository = jewelRepository;
+                this.loanRepository = loanRepository;
+                this.userRepository = userRepository;
+                this.cloudinaryService = cloudinaryService;
         }
 
-        if (request.getWeight() != null) {
-            jewel.setWeight(
-                    request.getWeight());
+        private JewelResponse mapToResponse(Jewel jewel) {
+
+                List<String> imageUrls = jewel.getImages()
+                                .stream()
+                                .map(JewelImage::getImageUrl)
+                                .toList();
+
+                return JewelResponse.builder()
+                                .id(jewel.getId())
+                                .jewelType(jewel.getJewelType())
+                                .weight(jewel.getWeight())
+                                .quantity(jewel.getQuantity())
+                                .description(jewel.getDescription())
+                                .imageUrls(imageUrls)
+                                .build();
         }
 
-        if (request.getQuantity() != null) {
-            jewel.setQuantity(
-                    request.getQuantity());
+        @Override
+        public JewelResponse createJewel(
+                        Long loanId,
+                        JewelRequest request,
+                        List<MultipartFile> images) {
+
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
+
+                String email = authentication.getName();
+
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new UserNotFoundException(
+                                                "User not found"));
+
+                Loan loan = loanRepository
+                                .findByIdAndUser(
+                                                loanId,
+                                                user)
+                                .orElseThrow(() -> new LoanNotFoundException(
+                                                "Loan not found"));
+
+                Jewel jewel = Jewel.builder()
+                                .jewelType(
+                                                request.getJewelType())
+                                .weight(
+                                                request.getWeight())
+                                .quantity(
+                                                request.getQuantity())
+                                .description(
+                                                request.getDescription())
+                                .loan(loan)
+                                .build();
+
+                if (images != null && !images.isEmpty()) {
+
+                        for (MultipartFile image : images) {
+
+                                if (image.isEmpty()) {
+                                        continue;
+                                }
+
+                                String imageUrl = cloudinaryService.uploadImage(image);
+
+                                JewelImage jewelImage = JewelImage.builder()
+                                                .imageUrl(imageUrl)
+                                                .jewel(jewel)
+                                                .build();
+
+                                jewel.getImages().add(jewelImage);
+                        }
+                }
+
+                Jewel savedJewel = jewelRepository.save(jewel);
+
+                return mapToResponse(savedJewel);
         }
 
-        if (request.getDescription() != null) {
-            jewel.setDescription(
-                    request.getDescription());
+        @Override
+        public List<JewelResponse> getJewelsByLoan(
+                        Long loanId) {
+
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
+
+                String email = authentication.getName();
+
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new UserNotFoundException(
+                                                "User not found"));
+
+                Loan loan = loanRepository
+                                .findByIdAndUser(
+                                                loanId,
+                                                user)
+                                .orElseThrow(() -> new LoanNotFoundException(
+                                                "Loan not found"));
+
+                List<Jewel> jewels = jewelRepository.findByLoan(loan);
+
+                return jewels.stream()
+                                .map(this::mapToResponse)
+                                .toList();
         }
 
-        Jewel updatedJewel = jewelRepository.save(jewel);
+        @Override
+        public JewelResponse updateJewel(
+                        Long loanId,
+                        Long jewelId,
+                        UpdateJewelRequest request) {
 
-        return mapToResponse(updatedJewel);
-    }
+                Authentication authentication = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication();
 
-    @Override
-    public void deleteJewel(
-            Long loanId,
-            Long jewelId) {
+                String email = authentication.getName();
 
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new UserNotFoundException(
+                                                "User not found"));
 
-        String email = authentication.getName();
+                Loan loan = loanRepository
+                                .findByIdAndUser(
+                                                loanId,
+                                                user)
+                                .orElseThrow(() -> new LoanNotFoundException(
+                                                "Loan not found"));
 
-        User user = userRepository
-                .findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException(
-                        "User not found"));
+                Jewel jewel = jewelRepository
+                                .findByIdAndLoan(
+                                                jewelId,
+                                                loan)
+                                .orElseThrow(() -> new RuntimeException(
+                                                "Jewel not found"));
 
-        Loan loan = loanRepository
-                .findByIdAndUser(
-                        loanId,
-                        user)
-                .orElseThrow(() -> new LoanNotFoundException(
-                        "Loan not found"));
+                if (request.getJewelType() != null) {
+                        jewel.setJewelType(
+                                        request.getJewelType());
+                }
 
-        Jewel jewel = jewelRepository
-                .findByIdAndLoan(
-                        jewelId,
-                        loan)
-                .orElseThrow(() -> new RuntimeException(
-                        "Jewel not found"));
+                if (request.getWeight() != null) {
+                        jewel.setWeight(
+                                        request.getWeight());
+                }
 
-        jewelRepository.delete(jewel);
-    }
+                if (request.getQuantity() != null) {
+                        jewel.setQuantity(
+                                        request.getQuantity());
+                }
+
+                if (request.getDescription() != null) {
+                        jewel.setDescription(
+                                        request.getDescription());
+                }
+
+                Jewel updatedJewel = jewelRepository.save(jewel);
+
+                return mapToResponse(updatedJewel);
+        }
+
+        @Override
+        public void deleteJewel(
+                        Long loanId,
+                        Long jewelId) {
+
+                Jewel jewel = jewelRepository
+                                .findById(jewelId)
+                                .orElseThrow(() -> new JewelNotFoundException(
+                                                "Jewel not found"));
+
+                if (!jewel.getLoan().getId().equals(loanId)) {
+                        throw new JewelNotFoundException(
+                                        "Jewel does not belong to this loan");
+                }
+
+                // Delete images from Cloudinary
+                if (jewel.getImages() != null) {
+
+                        for (JewelImage image : jewel.getImages()) {
+
+                                cloudinaryService.deleteImage(
+                                                image.getImageUrl());
+                        }
+                }
+
+                // Delete Jewel
+                jewelRepository.delete(jewel);
+        }
+
+        @Override
+        public JewelResponse getJewelById(
+                        Long loanId,
+                        Long jewelId) {
+
+                Jewel jewel = jewelRepository
+                                .findById(jewelId)
+                                .orElseThrow(() -> new JewelNotFoundException(
+                                                "Jewel not found"));
+
+                if (!jewel.getLoan().getId().equals(loanId)) {
+                        throw new JewelNotFoundException(
+                                        "Jewel does not belong to this loan");
+                }
+
+                return mapToResponse(jewel);
+        }
 
 }

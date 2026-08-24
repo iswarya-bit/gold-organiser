@@ -1,5 +1,6 @@
 package com.iswarya.backend.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,6 +28,8 @@ import com.iswarya.backend.service.JwtService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @WebMvcTest(LoanController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -93,7 +96,7 @@ class LoanControllerTest {
                                 .status(LoanStatus.ACTIVE)
                                 .build();
 
-                when(loanService.createLoan(request))
+                when(loanService.createLoan(any(LoanRequest.class)))
                                 .thenReturn(response);
 
                 mockMvc.perform(post("/api/loans")
