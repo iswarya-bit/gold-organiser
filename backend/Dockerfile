@@ -17,4 +17,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "java -XX:MaxRAMPercentage=75.0 -Dserver.port=${PORT:-8080} -jar app.jar"]
+CMD ["sh", "-c", "keytool -importcert -noprompt -trustcacerts -alias aiven-mysql-ca -file /etc/secrets/ca.pem -keystore \"$JAVA_HOME/lib/security/cacerts\" -storepass changeit && exec java -XX:MaxRAMPercentage=75.0 -Dserver.port=${PORT:-8080} -jar app.jar"]
