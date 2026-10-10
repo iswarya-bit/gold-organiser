@@ -3,7 +3,6 @@ target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-.env
 
 ### STS ###
 .apt_generated
@@ -32,3 +31,19 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local configuration containing credentials
+application-local.properties
+application-secret.properties
+
+# Logs
+*.log
+
+# Build output
+target/
